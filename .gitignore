@@ -8,6 +8,6 @@
 # debug logs
 *.log
 
-# user-local config (never commit real keys — they live in ~/.config/ccpoint/, not here)
+# user-local config (never commit real keys — they live in ~/.config/cckick/, not here)
 *.local.zsh
 .env

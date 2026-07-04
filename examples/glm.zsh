@@ -1,6 +1,6 @@
-# ccpoint provider: Z.ai (GLM-5.2, Anthropic-compatible)
-# Key is read from $ZAI_API_KEY. AUTH_TOKEN mode → ccpoint clears ANTHROPIC_API_KEY to prevent bleed.
-ccpoint_p=(
+# cckick provider: Z.ai (GLM-5.2, Anthropic-compatible)
+# Key is read from $ZAI_API_KEY. AUTH_TOKEN mode → cckick clears ANTHROPIC_API_KEY to prevent bleed.
+cckick_p=(
   description "Z.ai (GLM-5.2, Anthropic-compatible)"
   base_url    "https://api.z.ai/api/anthropic"
   auth        AUTH_TOKEN
