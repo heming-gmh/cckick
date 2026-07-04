@@ -1,13 +1,13 @@
-# zsh 编译产物
+# zsh compiled artifacts
 *.zwc
 *.zwc.old
 
 # macOS
 .DS_Store
 
-# 调试日志
+# debug logs
 *.log
 
-# 用户本地配置(绝不入仓库 — 真实 key 永远在 ~/.config/ccpoint/,不在这里)
+# user-local config (never commit real keys — they live in ~/.config/ccpoint/, not here)
 *.local.zsh
 .env
