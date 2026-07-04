@@ -1,35 +1,35 @@
-# ccpoint provider 示例模板
+# ccpoint provider example template
 #
-# 用法:拷贝到 ~/.config/ccpoint/providers/<name>.zsh 并修改。
-# <name> 必须是合法 shell 标识符([a-z_][a-z0-9_]*),文件名(去 .zsh)即 provider 名,
-# 也是 ccpoint <name> 直选时用的名字,以及 _start/_stop 钩子函数名的后缀。
+# Usage: copy to ~/.config/ccpoint/providers/<name>.zsh and edit.
+# <name> must be a valid shell identifier ([a-z_][a-z0-9_]*); the filename (minus .zsh) is the
+# provider name — used by `ccpoint <name>` and as the suffix of the _start/_stop hook functions.
 #
-# 密钥永远不在本文件里 — 用 auth_var 指向一个环境变量,在 ~/.zshrc 里 export 它。
+# The key is NEVER in this file — use auth_var to point at an env var you export in ~/.zshrc.
 
-# ─── 简单 provider(80% 场景,只填这张表)──────────────────────────────
+# ─── Simple provider (80% of cases — just fill this table) ─────────────
 typeset -A ccpoint_p
 ccpoint_p=(
-  description  "你的 provider 显示名"
+  description  "your provider display name"
   base_url     "https://provider.example.com/anthropic"
-  auth         API_KEY            # 或 AUTH_TOKEN(二选一);AUTH_TOKEN 时 ccpoint 自动清空 ANTHROPIC_API_KEY 防串号
-  auth_var     YOUR_PROVIDER_KEY  # 从哪个环境变量取密钥(在 ~/.zshrc 里 export YOUR_PROVIDER_KEY=...)
-  model        "model-name"       # 可选;不设则用 claude 默认 / 用 /model 现切
-  # extra_args  "--dangerously-skip-permissions"  # 可选:额外传给 claude 的参数
+  auth         API_KEY            # or AUTH_TOKEN; in AUTH_TOKEN mode ccpoint clears ANTHROPIC_API_KEY to prevent credential bleed
+  auth_var     YOUR_PROVIDER_KEY  # which env var holds the key (export YOUR_PROVIDER_KEY=... in ~/.zshrc)
+  model        "model-name"       # optional; if unset, claude's default / use /model
+  # extra_args  "--dangerously-skip-permissions"  # optional: extra args passed to claude
 )
 
-# ─── 复杂 provider(需要起本地代理 / 预热 / 动态端口等,加钩子)─────────
-# 取消注释按需改。<name> 要和文件名一致。
+# ─── Complex provider (needs to start a local proxy / prewarm / dynamic port — add hooks) ──
+# Uncomment and edit. <name> must match the filename.
 #
 # ccpoint_start_<name>() {
-#   # 启动前逻辑:起进程、健康检查、动态改写 base_url
+#   # Pre-launch logic: start process, health check, rewrite base_url dynamically
 #   ccpoint_p[base_url]="http://127.0.0.1:4099"
 #   your-proxy --port 4099 &
 #   CCPOINT_PROXY_PID=$!
-#   # 健康检查:返回非零 → ccpoint 中止启动、调 _stop 清场、报错退出
+#   # Health check: return non-zero → ccpoint aborts launch, calls _stop, exits
 #   curl --retry 10 --retry-connrefused -s http://127.0.0.1:4099/health || return 1
 # }
 #
 # ccpoint_stop_<name>() {
-#   # 退出清场:ccpoint 自动 trap EXIT/INT/TERM/HUP 调用本函数
+#   # Cleanup on exit: ccpoint traps EXIT/INT/TERM/HUP to call this
 #   [[ -n "${CCPOINT_PROXY_PID:-}" ]] && kill "$CCPOINT_PROXY_PID" 2>/dev/null
 # }
