@@ -9,17 +9,20 @@
 
 [English](./README.md) | [中文](./README.zh-CN.md)
 
-<!-- TODO: 录一段 asciinema demo(ccpoint → fzf 选 provider → 启动 → exit 恢复默认)放这里 -->
+<!-- TODO: record an asciinema demo (ccpoint → fzf select → launch → exit restores default) -->
 
 ---
 
 ## Why ccpoint?
 
-Most Claude Code provider switchers (cc-switch, cc-switch-cli, …) work by **rewriting `~/.claude/settings.json`**, running a **local proxy daemon**, or **polluting your shell env**. They're powerful, but they leave state behind: stale endpoints, leaked tokens, orphan processes, history/compaction breakage on mid-session switches.
+Most Claude Code provider switchers (cc-switch, cc-switch-cli, …) work by **rewriting `~/.claude/settings.json`**, running a **local proxy daemon**, or **polluting your shell env**. They're powerful, but they leave state behind:
+
+> [!WARNING]
+> stale endpoints, leaked tokens, orphan processes, history/compaction breakage on mid-session switches.
 
 ccpoint takes the opposite stance — it's a **pure shell function** that launches Claude Code in a **subshell** with the provider's env. When you `exit`, the subshell closes, your parent shell is untouched, and you're back on the default endpoint. No proxy. No settings.json edits. No env pollution. Exit restores default.
 
-| | cc-switch (113K★) | cc-switch-cli (4K★) | CCM (640★) | **ccpoint** |
+| | cc-switch (mainstream GUI) | cc-switch-cli (Rust CLI) | CCM (pure Bash) | **ccpoint (this repo)** |
 |---|---|---|---|---|
 | Form | Desktop GUI (Tauri) | Rust binary | Pure Bash | **Pure zsh** |
 | Edits `settings.json` | ✓ | ✓ (default) | ✗ | **✗** |
@@ -47,7 +50,7 @@ git clone https://github.com/heming-gmh/ccpoint $ZSH_CUSTOM/plugins/ccpoint
 # zplug / zinit / antigen: just load the repo
 ```
 
-> ccpoint is **zsh-only**. It will refuse to load under bash. That's intentional — the whole point is a clean zsh function set, not a lowest-common-denominator polyglot.
+> ccpoint is **zsh-only**. It will refuse to load under bash. That's **intentional** — ccpoint aims to be a clean zsh function set, not a lowest-common-denominator polyglot.
 
 ## Usage
 

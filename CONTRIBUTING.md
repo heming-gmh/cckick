@@ -1,29 +1,33 @@
-# 贡献指南
+# Contributing
 
-感谢你有兴趣给 ccpoint 贡献!这是 deliberately small 的纯 zsh 工具,我们想保持它轻量——能一个 `source` 就用、不跑 proxy、不碰 `settings.json`、退出即净。
+Thanks for your interest in contributing to ccpoint! It's a deliberately small pure-zsh tool, and we want to keep it that way — one `source` to use, no proxy, no `settings.json` edits, exit leaves nothing behind.
 
-## 提 PR 前
+## Before submitting a PR
 
-1. **语法**:`zsh -n ccpoint.zsh` 无报错
-2. **shellcheck**:`shellcheck ccpoint.zsh examples/*.zsh`(trap/关联数组相关误报可用 `# shellcheck disable=...` 抑制)
-3. **测试**:`make test`(或 `zsh tests/run.zsh`)全绿
-4. **provider 文件永不含真实 key**:用 `auth_var` 从环境变量取
+1. **Syntax**: `zsh -n ccpoint.zsh` passes
+2. **shellcheck**: `shellcheck ccpoint.zsh examples/*.zsh` (zsh-specific constructs — glob qualifiers `(N)`, `typeset -A`, the source-consumed `ccpoint_p` — produce false positives; see the `# shellcheck` directive at the top of `ccpoint.zsh`)
+3. **Tests**: `make test` (or `zsh tests/run.zsh`) all green
+4. **Provider files never contain real keys**: use `auth_var` to read from an env var
 
-## 加 provider 模板
+## Adding a provider template
 
-欢迎往 `examples/` 加更多 provider。每个文件:
-- 只声明 `ccpoint_p` 关联数组 + 可选 `ccpoint_start_<name>` / `ccpoint_stop_<name>` 钩子
-- **不含真实 key**,用 `auth_var` 指向一个环境变量
-- 文件名是合法 shell 标识符(`[a-z_][a-z0-9_]*`),即 provider 名
+New provider templates under `examples/` are welcome. Each file:
+- declares only the `ccpoint_p` associative array + optional `ccpoint_start_<name>` / `ccpoint_stop_<name>` hooks
+- **contains no real key** — uses `auth_var` to point at an env var
+- has a filename that's a valid shell identifier (`[a-z_][a-z0-9_]*`), i.e. the provider name
 
-## commit message
+## Commit messages
 
-简洁清晰,中英文都行。示例:`add provider: openrouter` / `fix: AUTH_TOKEN 模式未清 API_KEY 导致串号`。
+Concise and clear. Examples: `add provider: openrouter` / `fix: AUTH_TOKEN mode didn't clear API_KEY, causing credential bleed`.
 
-## 设计约束(改核心前请读)
+## Design constraints (read before touching the core)
 
-ccpoint 的核心卖点是默认且唯一的语义:**子 shell 启动 + 退出回退 + 不跑 proxy + 不碰 settings.json + 不污染父 shell env**。改动若削弱这些(比如加常驻进程、改 settings.json、往父 shell export),请先开 issue 讨论。
+ccpoint's defining property is the default-and-only semantics: **subshell launch + exit-restores-default + no proxy + no settings.json + no parent-shell env pollution**. Changes that weaken these (adding a daemon, writing settings.json, exporting to the parent shell) should be discussed in an issue first.
 
-## 行为准则
+## Language
 
-见 [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)。参与即代表同意遵守。
+Code comments and contributor-facing docs (DESIGN, CONTRIBUTING, COC, CHANGELOG) are in **English**. The README is bilingual (`README.md` / `README.zh-CN.md`) — keep both in sync when changing user-facing content.
+
+## Code of conduct
+
+See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Participating means agreeing to abide by it.

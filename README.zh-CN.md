@@ -15,11 +15,14 @@
 
 ## 为什么用 ccpoint?
 
-市面上的 Claude Code provider 切换器(cc-switch、cc-switch-cli 等)大多靠**改写 `~/.claude/settings.json`**、**跑本地 proxy 守护进程**、或**污染你的 shell 环境变量**来工作。它们很强,但会留下状态:残留的端点、泄漏的 token、孤儿进程、会话中切换导致的历史/compaction 出错。
+市面上的 Claude Code provider 切换器(cc-switch、cc-switch-cli 等)大多靠**改写 `~/.claude/settings.json`**、**跑本地 proxy 守护进程**、或**污染你的 shell 环境变量**来工作。它们很强,但会留下状态:
+
+> [!WARNING]
+> 残留的端点、泄漏的 token、孤儿进程、会话中切换导致的历史/compaction 出错。
 
 ccpoint 反其道而行——它是一个**纯 shell 函数**,在一个**子 shell** 里用 provider 的环境变量启动 Claude Code。你 `exit` 退出后,子 shell 关闭,父 shell 毫发无损,默认端点自动恢复。不跑 proxy,不改 settings.json,不污染 env,退出即净。
 
-| | cc-switch (113K★) | cc-switch-cli (4K★) | CCM (640★) | **ccpoint** |
+| | cc-switch(主流 GUI) | cc-switch-cli(Rust CLI) | CCM(纯 Bash) | **ccpoint(本仓库)** |
 |---|---|---|---|---|
 | 形态 | 桌面 GUI(Tauri) | Rust 二进制 | 纯 Bash | **纯 zsh** |
 | 改 `settings.json` | ✓ | ✓(默认) | ✗ | **✗** |
@@ -47,7 +50,7 @@ git clone https://github.com/heming-gmh/ccpoint $ZSH_CUSTOM/plugins/ccpoint
 # zplug / zinit / antigen:直接 load 本仓库
 ```
 
-> ccpoint **只支持 zsh**,在 bash 下会拒绝加载。这是有意的——核心卖点是干净的 zsh 函数集合,不是向下兼容的混合体。
+> ccpoint **只支持 zsh**,在 bash 下会拒绝加载。这是**刻意为之**——ccpoint 就是要做一个干净的 zsh 函数集合,不是向下兼容的混合体。
 
 ## 用法
 

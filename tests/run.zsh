@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
-# ccpoint 测试套件。用法:zsh tests/run.zsh 或 make test。
-# 自包含:建临时 providers + 假 claude,断言核心行为。退出码 0=全过,1=有失败。
+# ccpoint test suite. Usage: zsh tests/run.zsh or `make test`.
+# Self-contained: builds a temp providers dir + a fake claude, asserts core behavior.
+# Exit code 0 = all pass, 1 = at least one failure.
 
 emulate -L zsh
 set -u
@@ -25,7 +26,7 @@ source "$CCPOINT_ROOT/ccpoint.zsh"
 ok() { print "  ✓ $1"; PASS=$((PASS+1)); }
 no() { print "  ✗ $1"; print "    $2"; FAIL=$((FAIL+1)); }
 
-print "ccpoint 测试套件"
+print "ccpoint test suite"
 print ""
 
 # T1 list
@@ -34,29 +35,29 @@ cat > "$TMP/providers/deepseek.zsh" <<'EOF'
 ccpoint_p=(description "DeepSeek" base_url "https://x" auth API_KEY auth_var K1 model "m")
 EOF
 out=$(ccpoint list)
-[[ "$out" == *deepseek* ]] && [[ "$out" == *DeepSeek* ]] && ok "list 列出 provider + description" || no "list" "$out"
+[[ "$out" == *deepseek* ]] && [[ "$out" == *DeepSeek* ]] && ok "list shows provider + description" || no "list" "$out"
 
-# T2 防串号对称(API_KEY 模式也清 AUTH_TOKEN)
-print "T2  防串号对称:API_KEY 模式清继承的 AUTH_TOKEN"
+# T2 symmetric credential isolation (API_KEY mode also clears inherited AUTH_TOKEN)
+print "T2  symmetric isolation: API_KEY mode clears inherited AUTH_TOKEN"
 export K1=sk-fresh ANTHROPIC_AUTH_TOKEN=STALE
 cat > "$TMP/providers/api.zsh" <<'EOF'
 ccpoint_p=(description "api" base_url "https://x" auth API_KEY auth_var K1 model "m")
 EOF
 out=$(ccpoint api 2>/dev/null)
-[[ "$out" == *"API_KEY=sk-fresh"* ]] && ok "API_KEY 设值" || no "API_KEY" "$out"
-[[ "$out" == *"TOKEN="* && "$out" != *"TOKEN=STALE"* ]] && ok "AUTH_TOKEN 被清(不再串号)" || no "AUTH_TOKEN" "$out"
+[[ "$out" == *"API_KEY=sk-fresh"* ]] && ok "API_KEY set" || no "API_KEY" "$out"
+[[ "$out" == *"TOKEN="* && "$out" != *"TOKEN=STALE"* ]] && ok "AUTH_TOKEN cleared (no bleed)" || no "AUTH_TOKEN" "$out"
 unset ANTHROPIC_AUTH_TOKEN
 
-# T3 extra_args 引号切词
-print "T3  extra_args 引号切词(含空格参数不被切碎)"
+# T3 extra_args quote-aware splitting
+print "T3  extra_args quote-aware splitting (spaces inside one arg preserved)"
 cat > "$TMP/providers/args.zsh" <<'EOF'
 ccpoint_p=(description "args" base_url "https://x" auth API_KEY auth_var K1 model "m" extra_args '--header "a b c" --flag')
 EOF
 out=$(ccpoint args 2>/dev/null)
-[[ "$out" == *"ARGC=3"* ]] && ok "切出 3 个参数(引号剥掉)" || no "extra_args" "$out"
+[[ "$out" == *"ARGC=3"* ]] && ok "split into 3 args (quotes stripped)" || no "extra_args" "$out"
 
-# T4 _start 失败 → EXIT trap 清场(critical)
-print "T4  _start 失败 → EXIT trap 清场(代理不残留)"
+# T4 _start failure → EXIT trap cleanup (no orphan)
+print "T4  _start failure → EXIT trap cleanup (no orphan process)"
 cat > "$TMP/providers/leak.zsh" <<'EOF'
 ccpoint_p=(description "leak" auth API_KEY auth_var K1 model "m")
 ccpoint_start_leak() {
@@ -71,24 +72,24 @@ EOF
 ccpoint leak >/dev/null 2>&1
 sleep 0.3
 if pgrep -f 'sleep 30' >/dev/null; then
-  no "代理泄漏" "sleep 30 残留"; pkill -f 'sleep 30' 2>/dev/null
+  no "orphan leaked" "sleep 30 still alive"; pkill -f 'sleep 30' 2>/dev/null
 else
-  ok "代理已清(无残留)"
+  ok "process cleaned up (no orphan)"
 fi
 
-# T5 name 校验(防路径穿越)
-print "T5  name 校验(防 ../ 路径穿越)"
-ccpoint '../evil' >/dev/null 2>&1 && no "../ 未被拒" "" || ok "../ 被拒"
-ccpoint 'a;b'      >/dev/null 2>&1 && no "分号未被拒" "" || ok "分号被拒"
+# T5 name validation (path traversal prevention)
+print "T5  name validation (../ path traversal rejected)"
+ccpoint '../evil' >/dev/null 2>&1 && no "../ not rejected" "" || ok "../ rejected"
+ccpoint 'a;b'      >/dev/null 2>&1 && no "semicolon not rejected" "" || ok "semicolon rejected"
 
-# T6 print 不吃 %
-print "T6  print 不把 description 的 % 当转义吃掉"
+# T6 print doesn't eat %
+print "T6  print doesn't treat % in description as a prompt escape"
 cat > "$TMP/providers/pct.zsh" <<'EOF'
-ccpoint_p=(description "50%off 促销" auth API_KEY auth_var K1 model "m")
+ccpoint_p=(description "50%off sale" auth API_KEY auth_var K1 model "m")
 EOF
 out=$(ccpoint pct 2>&1)
-[[ "$out" == *"50%off"* ]] && ok "50%off 原样显示" || no "print %" "$out"
+[[ "$out" == *"50%off"* ]] && ok "50%off shown verbatim" || no "print %" "$out"
 
 print ""
-print "结果:$PASS passed, $FAIL failed"
+print "result: $PASS passed, $FAIL failed"
 (( FAIL == 0 )) && exit 0 || exit 1

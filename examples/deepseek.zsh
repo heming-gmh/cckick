@@ -1,7 +1,7 @@
-# ccpoint provider: DeepSeek (Anthropic 兼容端点)
-# 密钥从 $DEEPSEEK_API_KEY 取(在 ~/.zshrc 里 export),本文件不含明文 key。
+# ccpoint provider: DeepSeek (Anthropic-compatible endpoint)
+# Key is read from $DEEPSEEK_API_KEY (export it in ~/.zshrc); this file holds no plaintext key.
 ccpoint_p=(
-  description "DeepSeek (Anthropic 兼容端点)"
+  description "DeepSeek (Anthropic-compatible)"
   base_url    "https://api.deepseek.com/anthropic/"
   auth        API_KEY
   auth_var    DEEPSEEK_API_KEY
