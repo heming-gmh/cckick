@@ -1,6 +1,6 @@
-# ccpoint provider: DeepSeek (Anthropic-compatible endpoint)
+# cckick provider: DeepSeek (Anthropic-compatible endpoint)
 # Key is read from $DEEPSEEK_API_KEY (export it in ~/.zshrc); this file holds no plaintext key.
-ccpoint_p=(
+cckick_p=(
   description "DeepSeek (Anthropic-compatible)"
   base_url    "https://api.deepseek.com/anthropic/"
   auth        API_KEY
