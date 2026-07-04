@@ -1,4 +1,4 @@
-# ccpoint.plugin.zsh — 薄入口,供插件管理器(oh-my-zsh / zplug / zinit / antigen)零配置加载。
-# 真正的逻辑在 ccpoint.zsh。
-# ${0:A:h} = 本文件的绝对路径目录。
+# ccpoint.plugin.zsh — thin entry for plugin managers (oh-my-zsh / zplug / zinit / antigen)
+# to load with zero extra config. The real logic lives in ccpoint.zsh.
+# ${0:A:h} = absolute directory of this file.
 source "${0:A:h}/ccpoint.zsh"
