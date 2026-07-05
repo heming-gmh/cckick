@@ -103,6 +103,30 @@ cckick installs the `EXIT` trap **before** calling `_start`, so even if `_start`
 
 See [`cckick.example.zsh`](./cckick.example.zsh) and [`examples/`](./examples/) for more.
 
+## Cost-optimized planner/coder workflows
+
+cckick v0.2's `extra_env` makes the "premium planner + cheap coder" pattern — popularized by Mitchell Hashimoto's Fable-planner / GPT-coder / Fable-judge pipeline — declarative:
+
+```zsh
+cckick_p=(
+  ...
+  model     "premium-planner-model"                          # main loop = planner / judge
+  extra_env "CLAUDE_CODE_SUBAGENT_MODEL=cheap-coder-model"   # every subagent = cheap coder
+)
+```
+
+`CLAUDE_CODE_SUBAGENT_MODEL` overrides the model for **all** subagents (Task / Agent / Workflow). The main session reasons on the premium model; the token-heavy coding runs on a cheap fast one; you act as the judge in the main loop.
+
+**The big constraint** — Claude Code sends an experimental `context_management` beta that only **Anthropic** models accept. Routing any leg (main *or* subagent) to a non-Anthropic model (GLM / Qwen / DeepSeek) via a plain Anthropic-compatible endpoint returns a 400 on the first turn. So:
+
+- **Same-provider, Anthropic-only** (e.g. OpenRouter with `anthropic/claude-fable-5` + `anthropic/claude-haiku-latest`): works natively, no proxy. See [`examples/openrouter.zsh`](./examples/openrouter.zsh).
+- **Non-Anthropic cheap coder** (GLM / Qwen / DeepSeek): needs a **stripping / role-routing proxy** (`claude-code-router`, `agentgateway`, LiteLLM, or `oc-cc-proxy`) that drops the beta. cckick launches it via `_start` — see [`examples/opencode_go.zsh`](./examples/opencode_go.zsh) for the pattern.
+
+**Honest limits:**
+- One provider per session — all subagents inherit it; cckick can't give different subagents different providers.
+- Claude Code does **not** auto-dispatch by task difficulty; `CLAUDE_CODE_SUBAGENT_MODEL` is the lever that forces subagents onto the coder model (all of them, uniformly).
+- Mitchell's "few-dollar" figure also relies on running the coder on a flat-rate subscription (ChatGPT) — cckick can't replicate that; cckick's version meters the coder too (cheaply).
+
 ## Interactive selection
 
 cckick auto-detects [fzf](https://github.com/junegunn/fzf). With it: arrow keys + fuzzy search. Without it: a number menu (cckick deliberately avoids zsh's built-in `select`, which mangles CJK characters in its multi-column layout). Install fzf for the best experience:

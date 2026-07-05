@@ -103,6 +103,30 @@ cckick 在调用 `_start` **之前**就装好 `EXIT` trap,所以即使 `_start` 
 
 更多见 [`cckick.example.zsh`](./cckick.example.zsh) 和 [`examples/`](./examples/)。
 
+## 低成本 planner/coder 工作流
+
+cckick v0.2 的 `extra_env` 把"贵的 planner + 便宜的 coder"这套分工(Mitchell Hashimoto 那条 Fable-规划 / GPT-编码 / Fable-评审 流水线)变成声明式一行:
+
+```zsh
+cckick_p=(
+  ...
+  model     "premium-planner-model"                          # 主循环 = planner / judge
+  extra_env "CLAUDE_CODE_SUBAGENT_MODEL=cheap-coder-model"   # 所有 subagent = 便宜 coder
+)
+```
+
+`CLAUDE_CODE_SUBAGENT_MODEL` 覆盖**所有** subagent(Task / Agent / Workflow)的模型。主 session 在贵的模型上推理,token 大头的编码活儿跑在便宜快的模型上,你在主循环里人肉当 judge。
+
+**最大约束** —— Claude Code 会发一个实验性的 `context_management` beta,只有 **Anthropic** 模型认。把任意一环(主循环或 subagent)路由到非 Anthropic 模型(GLM / Qwen / DeepSeek),普通 Anthropic 兼容端点第一轮就 400。所以:
+
+- **同 provider、纯 Anthropic**(如 OpenRouter 配 `anthropic/claude-fable-5` + `anthropic/claude-haiku-latest`):原生可用,无需 proxy。见 [`examples/openrouter.zsh`](./examples/openrouter.zsh)。
+- **非 Anthropic 便宜 coder**(GLM / Qwen / DeepSeek):需要一个**剥离 / 按角色路由的 proxy**(`claude-code-router`、`agentgateway`、LiteLLM 或 `oc-cc-proxy`)来丢掉那个 beta。cckick 用 `_start` 起它 —— 模式见 [`examples/opencode_go.zsh`](./examples/opencode_go.zsh)。
+
+**诚实边界:**
+- 一个 session 只有一个 provider —— 所有 subagent 都继承它;cckick 没法给不同 subagent 配不同 provider。
+- Claude Code **不**按任务难度自动分流;`CLAUDE_CODE_SUBAGENT_MODEL` 才是强制 subagent 走 coder 模型的开关(全部统一)。
+- Mitchell 那个"几美元"的账还靠把 coder 跑在 ChatGPT 订阅上(不计 API 费)—— 这点 cckick 复刻不了;cckick 版本里 coder 也计 API 费(但便宜)。
+
 ## 交互选择
 
 cckick 自动检测 [fzf](https://github.com/junegunn/fzf)。有 fzf:上下键 + 模糊搜索;没 fzf:数字菜单(cckick 刻意没用 zsh 内建的 `select`,因为它的多列布局对中文宽字符对齐有 bug)。装 fzf 体验最佳:
