@@ -2,7 +2,7 @@
 
 This project follows [Semantic Versioning](https://semver.org/). Format based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased] — v0.2.0 (in development)
+## [0.2.0] — 2026-07-05
 
 ### Added
 - Per-tier model overrides: `opus_model` / `sonnet_model` / `haiku_model` fields → `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL` (a provider may set `model`, per-tier, both, or neither)
@@ -13,7 +13,7 @@ This project follows [Semantic Versioning](https://semver.org/). Format based on
 - `examples/opencode_go.zsh` `_start` now reuses an already-running proxy via a `/health` probe instead of always spawning a fresh one; `_stop` is a no-op in the reuse path
 - `examples/opencode_go.zsh` cold-start readiness timeout bumped 30s → 60s (uvx download + litellm init can exceed 30s on a first run)
 
-## [Unreleased] — v0.1.0 (in development)
+## [0.1.0] — 2026-07-05
 
 ### Added
 - Core `cckick.zsh`: provider loading, fzf/select dispatch, subshell launch, symmetric credential isolation, exit-restores-default
