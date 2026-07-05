@@ -35,13 +35,16 @@ cckick_start_opencode_go() {
     > /tmp/oc-cc-proxy.log 2>&1 &
   CCKICK_PROXY_PID=$!
 
+  # Cold start can take >30s (uvx resolving/downloading oc-cc-proxy + litellm init + its upstream
+  # health-check round-trip); poll up to 60s. Once up, the proxy persists across cckick sessions
+  # (_stop kills only the uvx launcher, like cc-go did) → later launches reuse it instantly.
   local _
-  for _ in {1..30}; do
+  for _ in {1..60}; do
     curl -s --connect-timeout 1 "http://127.0.0.1:$port/health" >/dev/null 2>&1 && return 0
     kill -0 "$CCKICK_PROXY_PID" 2>/dev/null || { print -u 2 "✗ proxy exited, see /tmp/oc-cc-proxy.log"; return 1; }
     sleep 1
   done
-  print -u 2 "✗ proxy not ready within 30s"
+  print -u 2 "✗ proxy not ready within 60s"
   return 1
 }
 
