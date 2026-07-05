@@ -2,6 +2,12 @@
 
 This project follows [Semantic Versioning](https://semver.org/). Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased] — v0.3.0 (in development)
+
+### Added
+- `examples/openrouter.zsh`: planner/coder cost-split showcase — premium main-loop model + a cheap coder forced via `CLAUDE_CODE_SUBAGENT_MODEL` in `extra_env`; handles OpenRouter's Bearer-auth + set-but-empty `ANTHROPIC_API_KEY` requirement
+- README "Cost-optimized planner/coder workflows" section (EN + zh-CN): documents the `model` + `extra_env CLAUDE_CODE_SUBAGENT_MODEL` pattern, the `context_management` beta constraint (non-Anthropic coders need a stripping/role-routing proxy), and honest limits
+
 ## [0.2.0] — 2026-07-05
 
 ### Added
