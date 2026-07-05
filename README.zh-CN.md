@@ -79,6 +79,8 @@ cckick_p=(
 )
 ```
 
+**可选字段**:`opus_model` / `sonnet_model` / `haiku_model` 设各档位模型覆盖(→ `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL`);`extra_env` 是空格分隔的 `KEY=VAL` 列表,在 claude 启动前 export(如 `"API_TIMEOUT_MS=3000000 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"`——按首个 `=` 切分,值可加引号;只放非敏感配置,密钥仍走 `auth_var`);`extra_args` 给 claude 透传额外 CLI 参数。均可选,只在设置时生效。完整字段注释见 [`cckick.example.zsh`](./cckick.example.zsh)。
+
 **密钥永远不在 provider 文件里**——`auth_var` 指向一个环境变量,你在 `~/.zshrc` 里 export(或从密码管理器取)。AUTH_TOKEN 模式下,cckick 还会清掉 `ANTHROPIC_API_KEY` 防串号。
 
 **复杂 provider**(需要起本地代理、预热等,加钩子):
@@ -114,7 +116,8 @@ brew install fzf   # 或 apt/pacman/dnf/scoop…
 ```zsh
 (                                          # 子 shell —— 下面所有改动都隔离在这里
   source ~/.config/cckick/providers/$name.zsh
-  unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL   # 对称清场
+  unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
+        ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL   # 对称清场
   trap cckick_stop_<name> EXIT            # 在 _start 之前装,失败路径也能清场
   cckick_start_<name>                     # 健康检查等(可选)
   export ANTHROPIC_* …                     # 按声明字段

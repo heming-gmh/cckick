@@ -15,6 +15,15 @@ cckick_p=(
 cckick_start_opencode_go() {
   local port="${CCKICK_PROXY_PORT:-4099}"
   cckick_p[base_url]="http://127.0.0.1:$port"
+
+  # Reuse an already-running proxy on this port (e.g. a second cckick launch in another terminal)
+  # instead of spawning a fresh one. CCKICK_PROXY_PID stays empty → _stop is a no-op and the reused
+  # process is left running for the next caller.
+  if curl -s --connect-timeout 1 "http://127.0.0.1:$port/health" >/dev/null 2>&1; then
+    print -u 2 "→ reusing existing OpenCode Go proxy (port $port)"
+    return 0
+  fi
+
   print -u 2 "→ starting OpenCode Go proxy (port $port)..."
   # ⚠ --api-key is visible in the process list (ps aux; readable by same-machine users). cckick's
   #    core deliberately uses env vars to avoid ps leakage — if oc-cc-proxy supports reading the key

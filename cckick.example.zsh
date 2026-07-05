@@ -14,6 +14,10 @@ cckick_p=(
   auth         API_KEY            # or AUTH_TOKEN; in AUTH_TOKEN mode cckick clears ANTHROPIC_API_KEY to prevent credential bleed
   auth_var     YOUR_PROVIDER_KEY  # which env var holds the key (export YOUR_PROVIDER_KEY=... in ~/.zshrc)
   model        "model-name"       # optional; if unset, claude's default / use /model
+  opus_model   "opus-model-id"    # optional per-tier override → ANTHROPIC_DEFAULT_OPUS_MODEL
+  sonnet_model "sonnet-model-id"  # optional per-tier override → ANTHROPIC_DEFAULT_SONNET_MODEL
+  haiku_model  "haiku-model-id"   # optional per-tier override → ANTHROPIC_DEFAULT_HAIKU_MODEL
+  extra_env    "API_TIMEOUT_MS=3000000 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"  # optional: space-separated KEY=VAL tokens exported before claude (non-secret config only; split on first '=', values may be quoted)
   # extra_args  "--dangerously-skip-permissions"  # optional: extra args passed to claude
 )
 

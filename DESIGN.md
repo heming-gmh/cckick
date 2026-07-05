@@ -59,6 +59,11 @@ cckick_p=(
 )
 ```
 
+Optional fields (all `[[ -n ]]`-guarded — only exported when declared):
+- `opus_model` / `sonnet_model` / `haiku_model` → per-tier overrides (`ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL`). A provider may set `model`, per-tier, both, or neither; cckick doesn't enforce Claude Code's precedence between them.
+- `extra_env` → space-separated `KEY=VAL` tokens, `(z)`-split, split on the first `=`, `(Q)`-de-quoted, exported before claude starts. Non-secret config only (timeouts, traffic flags); secrets still go through `auth_var`.
+- `extra_args` → extra CLI args passed to claude (`(z)`/`(Q)`-split).
+
 **Complex provider** (starts a local proxy, etc. — add lifecycle hooks):
 ```zsh
 cckick_p=(description "local proxy" auth API_KEY auth_var PROXY_KEY)
@@ -77,10 +82,10 @@ cckick_stop_myproxy() {         # on exit: cleanup (cckick traps EXIT/INT/TERM/H
 
 The launch flow (cckick core owns this; providers don't repeat it):
 1. subshell; source the provider file
-2. symmetric `unset` of all `ANTHROPIC_*` (clean slate)
+2. symmetric `unset` of all `ANTHROPIC_*` (clean slate — incl. per-tier `ANTHROPIC_DEFAULT_*_MODEL`)
 3. install `trap _stop EXIT` **before** `_start` (so a half-started `_start` still cleans up)
 4. call `_start` (health check; failure aborts → EXIT trap → _stop)
-5. `export ANTHROPIC_*` from declared fields
+5. `export ANTHROPIC_*` from declared fields (auth / base_url / model / per-tier / `extra_env`)
 6. run `claude` (not `exec` — so the EXIT trap fires after claude exits)
 7. subshell exits → parent shell untouched → default endpoint
 
@@ -93,7 +98,7 @@ Why declarative + hooks (not pure-function, not pure-declarative):
 ## 4. Security
 
 - **Keys never in provider files** — `auth_var` points at an env var (kept in `~/.zshrc` / password manager)
-- **Symmetric credential isolation** — on subshell entry, all `ANTHROPIC_*` are unset, then only this provider's values are exported (prevents a stale inherited token from making claude use the wrong account)
+- **Symmetric credential isolation** — on subshell entry, all `ANTHROPIC_*` are unset (including the per-tier `ANTHROPIC_DEFAULT_*_MODEL` vars), then only this provider's values are exported (prevents a stale inherited token — or a parent-shell per-tier model default — from making claude use the wrong account/model)
 - **claude path locked before sourcing** — `${commands[claude]}` is resolved before the provider file runs, so a provider can't shadow `claude` via `PATH` or a same-named function
 - **Provider-name validation** — `[A-Za-z0-9._-]+`, no `..` (prevents path traversal into `source`)
 - **Provider files are `source`d** — they're zsh and can run arbitrary code; this happens both when launching *and* when listing/menu-rendering (to read `description`). So only put trusted provider files in the providers dir, and keep their top level free of side effects (declare `cckick_p` + hooks only)

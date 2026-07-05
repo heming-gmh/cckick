@@ -79,6 +79,8 @@ cckick_p=(
 )
 ```
 
+**Optional fields**: `opus_model` / `sonnet_model` / `haiku_model` set per-tier overrides (→ `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL`); `extra_env` is a space-separated list of `KEY=VAL` tokens exported before claude starts (e.g. `"API_TIMEOUT_MS=3000000 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"` — split on the first `=`, values may be quoted; non-secret config only, secrets still go through `auth_var`); `extra_args` passes extra CLI args to claude. All are optional and only take effect when set. See [`cckick.example.zsh`](./cckick.example.zsh) for the full annotated schema.
+
 Keys are **never in the provider file** — `auth_var` points at an environment variable you export in `~/.zshrc` (or pull from your password manager). In `AUTH_TOKEN` mode, cckick additionally clears `ANTHROPIC_API_KEY` to prevent credential bleed-through.
 
 **Complex provider** (needs to start a local proxy, pre-warm, etc. — add hooks):
@@ -114,7 +116,8 @@ brew install fzf   # or apt/pacman/dnf/scoop…
 ```zsh
 (                                          # subshell — everything below stays inside
   source ~/.config/cckick/providers/$name.zsh
-  unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL   # symmetric clean slate
+  unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
+        ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL   # symmetric clean slate
   trap cckick_stop_<name> EXIT            # before _start, so failures still clean up
   cckick_start_<name>                     # health check etc. (optional)
   export ANTHROPIC_* …                     # from the declared fields
