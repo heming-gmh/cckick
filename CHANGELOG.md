@@ -11,6 +11,7 @@ This project follows [Semantic Versioning](https://semver.org/). Format based on
 
 ### Changed
 - `examples/opencode_go.zsh` `_start` now reuses an already-running proxy via a `/health` probe instead of always spawning a fresh one; `_stop` is a no-op in the reuse path
+- `examples/opencode_go.zsh` cold-start readiness timeout bumped 30s → 60s (uvx download + litellm init can exceed 30s on a first run)
 
 ## [Unreleased] — v0.1.0 (in development)
 
