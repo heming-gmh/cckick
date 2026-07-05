@@ -15,6 +15,7 @@ mkdir -p "$TMP/bin" "$TMP/providers"
 cat > "$TMP/bin/claude" <<'EOF'
 #!/bin/zsh
 echo "API_KEY=${ANTHROPIC_API_KEY:-} TOKEN=${ANTHROPIC_AUTH_TOKEN:-} BASE=${ANTHROPIC_BASE_URL:-} MODEL=${ANTHROPIC_MODEL:-}"
+echo "OPUS=${ANTHROPIC_DEFAULT_OPUS_MODEL:-} SONNET=${ANTHROPIC_DEFAULT_SONNET_MODEL:-} HAIKU=${ANTHROPIC_DEFAULT_HAIKU_MODEL:-} TIMEOUT=${API_TIMEOUT_MS:-} TRAFFIC=${CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:-}"
 echo "ARGC=$#"
 EOF
 chmod +x "$TMP/bin/claude"
@@ -89,6 +90,36 @@ cckick_p=(description "50%off sale" auth API_KEY auth_var K1 model "m")
 EOF
 out=$(cckick pct 2>&1)
 [[ "$out" == *"50%off"* ]] && ok "50%off shown verbatim" || no "print %" "$out"
+
+# T7 per-tier model overrides → ANTHROPIC_DEFAULT_<TIER>_MODEL
+print "T7  per-tier model overrides map to ANTHROPIC_DEFAULT_<TIER>_MODEL"
+cat > "$TMP/providers/tier.zsh" <<'EOF'
+cckick_p=(description "tier" base_url "https://x" auth API_KEY auth_var K1 model "m" opus_model "opus-m" sonnet_model "sonnet-m" haiku_model "haiku-m")
+EOF
+out=$(cckick tier 2>/dev/null)
+[[ "$out" == *"OPUS=opus-m"* ]]   && ok "opus_model → ANTHROPIC_DEFAULT_OPUS_MODEL"   || no "opus_model"   "$out"
+[[ "$out" == *"SONNET=sonnet-m"* ]] && ok "sonnet_model → ANTHROPIC_DEFAULT_SONNET_MODEL" || no "sonnet_model" "$out"
+[[ "$out" == *"HAIKU=haiku-m"* ]]  && ok "haiku_model → ANTHROPIC_DEFAULT_HAIKU_MODEL"  || no "haiku_model"  "$out"
+
+# T8 extra_env: space-separated KEY=VAL tokens exported before claude
+print "T8  extra_env KEY=VAL tokens exported before claude"
+cat > "$TMP/providers/env.zsh" <<'EOF'
+cckick_p=(description "env" base_url "https://x" auth API_KEY auth_var K1 model "m" extra_env "API_TIMEOUT_MS=3000000 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1")
+EOF
+out=$(cckick env 2>/dev/null)
+[[ "$out" == *"TIMEOUT=3000000"* ]] && ok "API_TIMEOUT_MS exported" || no "extra_env TIMEOUT" "$out"
+[[ "$out" == *"TRAFFIC=1"* ]]       && ok "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC exported" || no "extra_env TRAFFIC" "$out"
+
+# T9 symmetric isolation: inherited ANTHROPIC_DEFAULT_*_MODEL cleared when the provider sets none
+print "T9  symmetric isolation: inherited per-tier models cleared"
+export ANTHROPIC_DEFAULT_OPUS_MODEL=STALE_O ANTHROPIC_DEFAULT_SONNET_MODEL=STALE_S ANTHROPIC_DEFAULT_HAIKU_MODEL=STALE_H
+cat > "$TMP/providers/bare.zsh" <<'EOF'
+cckick_p=(description "bare" base_url "https://x" auth API_KEY auth_var K1 model "m")
+EOF
+out=$(cckick bare 2>/dev/null)
+[[ "$out" == *"OPUS="* && "$out" != *"STALE_O"* ]]  && ok "inherited OPUS cleared"   || no "OPUS isolation"   "$out"
+[[ "$out" == *"HAIKU="* && "$out" != *"STALE_H"* ]] && ok "inherited HAIKU cleared" || no "HAIKU isolation" "$out"
+unset ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL
 
 print ""
 print "result: $PASS passed, $FAIL failed"

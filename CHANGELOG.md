@@ -2,6 +2,16 @@
 
 This project follows [Semantic Versioning](https://semver.org/). Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased] — v0.2.0 (in development)
+
+### Added
+- Per-tier model overrides: `opus_model` / `sonnet_model` / `haiku_model` fields → `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL` (a provider may set `model`, per-tier, both, or neither)
+- `extra_env` field: space-separated `KEY=VAL` tokens exported before claude starts (e.g. `API_TIMEOUT_MS=3000000`); split on the first `=`, values may be quoted; non-secret config only — secrets still go through `auth_var`
+- Symmetric clean slate now also clears `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL` on subshell entry, so a parent-shell per-tier default can't leak into a provider that pins none
+
+### Changed
+- `examples/opencode_go.zsh` `_start` now reuses an already-running proxy via a `/health` probe instead of always spawning a fresh one; `_stop` is a no-op in the reuse path
+
 ## [Unreleased] — v0.1.0 (in development)
 
 ### Added

@@ -82,8 +82,12 @@ _cckick_launch() {
     # Symmetric clean slate: drop everything inherited from the parent shell so only this
     # provider's values take effect. (Earlier versions only cleared API_KEY in AUTH_TOKEN mode —
     # but API_KEY mode didn't clear AUTH_TOKEN, so a stale inherited token would make claude
-    # prefer the Bearer and silently use the wrong account.)
-    unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL
+    # prefer the Bearer and silently use the wrong account.) The unset list must cover every var
+    # the export block below can set — including per-tier models, or a parent-shell default
+    # (e.g. ANTHROPIC_DEFAULT_*_MODEL pinned for the default endpoint) would leak into a provider
+    # that declares none.
+    unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
+          ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL
 
     # Install trap BEFORE _start starts any subprocess — so a half-started _start (e.g. proxy
     # up but health check failing) still triggers EXIT → _stop and doesn't leak the process.
@@ -123,6 +127,24 @@ _cckick_launch() {
     esac
     [[ -n "${cckick_p[base_url]}" ]] && export ANTHROPIC_BASE_URL="${cckick_p[base_url]}"
     [[ -n "${cckick_p[model]}" ]]    && export ANTHROPIC_MODEL="${cckick_p[model]}"
+
+    # Per-tier model overrides → ANTHROPIC_DEFAULT_<TIER>_MODEL. Optional: a provider may set
+    # model, per-tier, both, or neither. cckick only exports what the provider declares.
+    [[ -n "${cckick_p[opus_model]}" ]]   && export ANTHROPIC_DEFAULT_OPUS_MODEL="${cckick_p[opus_model]}"
+    [[ -n "${cckick_p[sonnet_model]}" ]] && export ANTHROPIC_DEFAULT_SONNET_MODEL="${cckick_p[sonnet_model]}"
+    [[ -n "${cckick_p[haiku_model]}" ]]  && export ANTHROPIC_DEFAULT_HAIKU_MODEL="${cckick_p[haiku_model]}"
+
+    # extra_env: space-separated KEY=VAL tokens, exported before claude starts. (z) splits on shell
+    # syntax, then each token is split on the FIRST '=' and (Q)-de-quoted — so values may contain
+    # spaces (quoted) or '='. Tokens lacking '=' are skipped. For non-secret config (timeouts,
+    # traffic flags); secrets still go through auth_var, never here.
+    local _kv _k _v
+    for _kv in ${(z)cckick_p[extra_env]:-}; do
+      [[ "$_kv" == *=* ]] || continue
+      _k="${_kv%%=*}"
+      _v="${(Q)_kv#*=}"
+      export "$_k=$_v"
+    done
 
     # No print -P (it would eat % in description as prompt escapes); use ANSI literal + -r
     print -r -- $'\e[36m→ cckick:\e[0m \e[1m'"$name"$'\e[0m — '"${cckick_p[description]}"
