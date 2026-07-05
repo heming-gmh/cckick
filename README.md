@@ -5,7 +5,7 @@
 [![no proxy](https://img.shields.io/badge/no%20proxy-no%20daemon-success)](#why-cckick)
 [![fzf optional](https://img.shields.io/badge/fzf-optional-orange)](#interactive-selection)
 
-**Kick Claude Code onto any endpoint. Pure shell · no proxy · exit restores default.**
+**Kick Claude Code onto any provider, one session at a time. Pure shell · no proxy · exit restores default.**
 
 [English](./README.md) | [中文](./README.zh-CN.md)
 
@@ -21,6 +21,8 @@ Most Claude Code provider switchers (cc-switch, cc-switch-cli, …) work by **re
 > stale endpoints, leaked tokens, orphan processes, history/compaction breakage on mid-session switches.
 
 cckick takes the opposite stance — it's a **pure shell function** that launches Claude Code in a **subshell** with the provider's env. When you `exit`, the subshell closes, your parent shell is untouched, and you're back on the default endpoint. No proxy. No settings.json edits. No env pollution. Exit restores default.
+
+cckick isn't an aggregator — it doesn't replace OpenRouter or your provider. It's the **switching layer** that lets a Max subscription, a direct vendor key (z.ai, SiliconFlow, DeepSeek), an aggregator (OpenRouter), and a local proxy all **coexist**: keep DeepSeek as the default, `cckick zai` for a GLM task, `cckick opencode_go` to spin up a local proxy, `exit` each time back to default.
 
 | | cc-switch (mainstream GUI) | cc-switch-cli (Rust CLI) | CCM (pure Bash) | **cckick (this repo)** |
 |---|---|---|---|---|

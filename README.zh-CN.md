@@ -5,7 +5,7 @@
 [![no proxy](https://img.shields.io/badge/no%20proxy-no%20daemon-success)](#为什么用-cckick)
 [![fzf optional](https://img.shields.io/badge/fzf-可选-orange)](#交互选择)
 
-**把 Claude Code 指向任意 provider 端点。纯 shell · 不跑 proxy · 退出即回退默认。**
+**按 session 把 Claude Code 切到任意 provider。纯 shell · 不跑 proxy · 退出即回退默认。**
 
 [English](./README.md) | [中文](./README.zh-CN.md)
 
@@ -21,6 +21,8 @@
 > 残留的端点、泄漏的 token、孤儿进程、会话中切换导致的历史/compaction 出错。
 
 cckick 反其道而行——它是一个**纯 shell 函数**,在一个**子 shell** 里用 provider 的环境变量启动 Claude Code。你 `exit` 退出后,子 shell 关闭,父 shell 毫发无损,默认端点自动恢复。不跑 proxy,不改 settings.json,不污染 env,退出即净。
+
+cckick 不是聚合器——它不替代 OpenRouter 或你的 provider,而是让它们**共存**的**切换层**:Max 订阅、直连 vendor key(z.ai / SiliconFlow / DeepSeek)、聚合器(OpenRouter)、本地 proxy 都能并存。DeepSeek 当默认,`cckick zai` 开个 GLM 任务,`cckick opencode_go` 起本地 proxy,每次 `exit` 回默认。
 
 | | cc-switch(主流 GUI) | cc-switch-cli(Rust CLI) | CCM(纯 Bash) | **cckick(本仓库)** |
 |---|---|---|---|---|
